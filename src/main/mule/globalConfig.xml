@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:api-gateway="http://www.mulesoft.org/schema/mule/api-gateway"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/mule/api-gateway/current/mule-api-gateway.xsd">
+	<http:request-config name="HTTP_Request_PayTM" doc:name="HTTP Request configuration" doc:id="05eea2d8-614d-4387-b3d0-bbd3ee48da68" >
+		<http:request-connection protocol="${paytmRequest.protocol}" host="${paytmRequest.host}" port="${paytmRequest.port}" />
+	</http:request-config>
+	<configuration-properties doc:name="Configuration properties" doc:id="c63c2117-4fb9-42a2-aaee-73d120dececb" file="propertyFiles/${mule.env}-config.yaml" />
+	<configuration doc:name="Configuration" doc:id="c6c6f9dc-74b1-40c0-a4ed-99a41ea1e178" defaultErrorHandler-ref="Global_Error_Handler" />
+	<global-property doc:name="Global Property" doc:id="75c2042f-fe28-4428-947d-fc212b9e3344" name="mule.env" value="DEV" />
+	
+</mule>

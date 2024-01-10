@@ -1,0 +1,12 @@
+  
+httpListener:
+  protocol:"HTTP"
+  host:All Interfaces [0.0.0.0]
+  port:8081
+ 
+paytmRequest:
+  protocol:"HTTPS" 
+  host:"securegw-stage.paytm.in" 
+  port:443
+  path:"/refund/apply"
+  checksumKey:"pKRmCcpG!O@Wc5RI"

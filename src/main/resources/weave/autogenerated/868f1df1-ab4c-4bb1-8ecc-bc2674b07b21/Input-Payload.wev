@@ -1,0 +1,22 @@
+%dw 2.0
+
+type auto_868f1df1_ab4c_4bb1_8ecc_bc2674b07b21_Input_Payload = {|
+  MID: String, 
+  TXNID: String, 
+  ORDERID: String, 
+  TXNAMOUNT: String, 
+  REFUNDAMOUNT: String, 
+  TXNDATE: String, 
+  RESPCODE: String, 
+  RESPMSG: String, 
+  STATUS: String, 
+  REFID: String, 
+  BANKTXNID: String, 
+  TOTALREFUNDAMT: String, 
+  REFUNDDATE: String, 
+  REFUNDTYPE: String, 
+  REFUNDID: String, 
+  CHILD_REFUND_STATUS: Array<{|    REFUND_TXN_ID: String,     BANK_TXN_ID: String,     STATUS: String,     REFUNDAMOUNT: String,     PAYMENTMODE: String,     GATEWAY: String,     CARD_ISSUER: String  |}>
+|} {"mediaType": "application/json",
+"encoding": "UTF-8"}
+

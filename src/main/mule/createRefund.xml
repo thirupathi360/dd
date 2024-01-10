@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd 
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+	<sub-flow name="paytmSub_Flow" doc:id="868f1df1-ab4c-4bb1-8ecc-bc2674b07b21" >
+		<logger level="INFO" doc:name="Logger" doc:id="d23b4bd0-c2d3-4247-bc8e-1cbd78e62b55" message="#[payload]"/>
+		<ee:transform doc:name="Transform Message" doc:id="b1522d20-b984-44e3-869e-dc3703724967">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="varspaytm"><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"mid": payload.Payment.@MerchantID,
+	"txnType": payload.Payment.@TransactionType,
+	"orderId": payload.Payment.@CustomerID,
+	"txnId": payload.Payment.@TransactionReference,
+	"refId": payload.Payment.@RefundReference,
+	"refundAmount": payload.Payment.@RefundAmount
+}
+]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<ee:transform doc:name="Transform Message" doc:id="61b92ef9-51fe-4e25-b97a-dbd1967775cf">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+import java!com::paytm::pg::merchant::PaytmChecksum
+import dw::core::Strings
+output application/json
+
+
+var reqbody ={"mid":vars.varspaytm.mid,"txnType":vars.varspaytm.txnType,"orderId":vars.varspaytm.orderId,"txnId":vars.varspaytm.txnId,"refId":vars.varspaytm.refId,"refundAmount":vars.varspaytm.refundAmount}
+ 
+ 
+fun removeLine(inString) = Strings::replaceAll(inString,"\n",'')
+fun removeSpace1(inString) = Strings::replaceAll(inString,"  ",'')
+fun removeSpace2(inString) = Strings::replaceAll(inString,": ",':')
+fun removeSpace3(inString) = Strings::replaceAll(inString,",  ",',')
+fun removeSpaces(inString) = removeSpace3(removeSpace2(removeSpace1(removeLine(inString))))
+
+var jsonString=write(reqbody, 'application/json') as String
+var jsonStringSimpfiy= removeSpaces(jsonString)
+ 
+---
+{
+	"checkSum" : PaytmChecksum::generateSignature(reqbody, "${paytmRequest.checksumKey}")	
+}]]></ee:set-payload>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="checkSum"><![CDATA[%dw 2.0
+import java!com::paytm::pg::merchant::PaytmChecksum
+output application/java
+
+
+var body = {
+ "MID":"TitanC10776275611988",
+ "TXNTYPE":"REFUND",
+ "ORDERID":"12239057_7698567",
+ "TXNID":"20231125010960000935007543523954214",
+ "REFID":"122390572312021021",
+ "REFUNDAMOUNT":"935.0"
+ }
+ 
+---
+PaytmChecksum::generateSignature(body, "${paytmRequest.checksumKey}")	
+]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="077f57a4-b2ff-4ea2-a42c-987173f13d7d" message="#[vars.checkSum]" />
+		<ee:transform doc:name="Transform Message" doc:id="c1978348-93be-4dc0-9947-a09e9c462143">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{"mid":vars.varspaytm.mid,"txnType":vars.varspaytm.txnType,"orderId":vars.varspaytm.orderId,"txnId":vars.varspaytm.txnId,"refId":vars.varspaytm.refId,"refundAmount":vars.varspaytm.refundAmount}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<try doc:name="Try" doc:id="b86af5aa-cee0-45d8-923d-5285312e83e1" >
+			<http:request method="POST" doc:name="Request" doc:id="0969a10f-916e-4b06-be69-8c61c0869043" config-ref="HTTP_Request_PayTM" path="${paytmRequest.path}" >
+				<http:headers ><![CDATA[#[output application/java
+---
+{
+	"signature" : vars.checkSum
+}]]]></http:headers>
+			</http:request>
+			<error-handler >
+				<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="7046fa2a-a34a-41ee-a8fe-e71e1fd2f18d" >
+					<ee:transform doc:name="Transform Message" doc:id="458c891d-cc5a-4038-b082-1041bf580015" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	
+	"message" : error.exception.errorMessage.typedValue
+
+}]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+					<logger level="INFO" doc:name="Logger" doc:id="af4c4e72-46df-4dc8-9af4-5cf2fcf69146" message="#[payload]"/>
+				
+</on-error-propagate>
+			</error-handler>
+		</try>
+		<ee:transform doc:name="Transform Message" doc:id="1be72434-c38e-41c5-ab1f-190deba71799" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+</mule>
