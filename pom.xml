@@ -37,7 +37,7 @@
 				<configuration>
 					<cloudHubDeployment>
 						<uri>https://anypoint.mulesoft.com</uri>
-						<muleVersion>4.4.0</muleVersion>
+						<muleVersion>4.5.0</muleVersion>
 						<username>${username}</username>
 						<password>${password}</password>
 						<applicationName>paytm-sys-apis</applicationName>
