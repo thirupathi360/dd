@@ -26,20 +26,19 @@
 				<artifactId>maven-clean-plugin</artifactId>
 				<version>3.2.0</version>
 			</plugin>
+			
+			
 			<plugin>
 				<groupId>org.mule.tools.maven</groupId>
 				<artifactId>mule-maven-plugin</artifactId>
 				<version>${mule.maven.plugin.version}</version>
 				<extensions>true</extensions>
-
-
-
 				<configuration>
 					<cloudHubDeployment>
 						<uri>https://anypoint.mulesoft.com</uri>
 						<muleVersion>4.5.0</muleVersion>
-						<username>${username}</username>
-						<password>${password}</password>
+						<username>${anypoint.username}</username>
+						<password>${anypoint.password}</password>
 						<applicationName>paytm-sys-apis</applicationName>
 						<environment>Sandbox</environment>
 						<workers>1</workers>
@@ -50,6 +49,7 @@
 					<classifier>mule-application</classifier>
 				</configuration>
 			</plugin>
+			
 
 
 
@@ -87,8 +87,12 @@
 			<version>1.2.1</version>
 		</dependency>
 	</dependencies>
-
 	<repositories>
+	
+	
+	
+
+
 		<repository>
 			<id>anypoint-exchange-v3</id>
 			<name>Anypoint Exchange</name>
@@ -102,8 +106,14 @@
 			<layout>default</layout>
 		</repository>
 	</repositories>
-
 	<pluginRepositories>
+	
+
+    
+	
+	
+	
+	
 		<pluginRepository>
 			<id>mulesoft-releases</id>
 			<name>MuleSoft Releases Repository</name>
