@@ -4,8 +4,8 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>com.mycompany</groupId>
-	<artifactId>titan-paytm-sys-api</artifactId>
+	<groupId>8083544b-b6be-42b4-83cd-dfca43a69c78</groupId>
+	<artifactId>titan-paytm-sys-api-app</artifactId>
 	<version>1.0.0-SNAPSHOT</version>
 	<packaging>mule-application</packaging>
 
