@@ -1,45 +1,45 @@
-name: Sandbox - Build and Deploy
+name: DEV - Workflow
 
+#triggers manually, on push, on pull request to DEVELOP branch
 on:
   push:
-    branches: sandbox 
-#normally you wouldn't be deploying master branch pushes to Sandbox,
-#but we're keeping things simple! 😁
-
-#setup enviroment variables using github secrets that will be utilized for setting.xml and pom.xml
-env:
-  NEXUS_USERNAME: ${{ secrets.NEXUSUSERNAME }}
-  NEXUS_PASSWORD: ${{ secrets.NEXUSPASSWORD }}
-  PLATFORM_USERNAME: ${{ secrets.PLATFORMUSERNAME }}
-  PLATFORM_PASSWORD: ${{ secrets.PLATFORMPASSWORD }}
-  ENVIRONMENT: ${{ secrets.ENVIRONMENT}}
+    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
-  BuildAndDeployToDev:
-    runs-on: ubuntu-latest
-    environment:
-      name: Sandbox
-    steps:
-#first, we need to checkout our mule application's branch code
-      - name: Checkout repository
-        uses: actions/checkout@v2
-#second, cache dependencies, No need to download every time
-      - name: cache dependencies
-        uses: actions/setup-java@v2
-        with:
-          java-version: '11'
-          distribution: 'adopt'
-          cache: maven
-#third, build with Maven
-      - name: Build with Maven
-        run: mvn -B clean package -s .maven/settings.xml
-#fourth, upload artifact, to utilize for other repo.(optional)
-      - name: upload Artifact
-        run: mkdir staging && cp target/*.jar staging
-      - uses: actions/upload-artifact@v2
-        with:
-          name: Package
-          path: staging
-#fifth, Deploy with Maven
-      - name: Deploy
-        run: mvn -B deploy -DmuleDeploy -s .maven/settings.xml
+  #This job builds and publishes the artifact to Exchange and stores backup in GitHub
+  build-dev-01:
+    if: ${{ !contains(github.event.head_commit.message,'Initialize develop') }} #Ignores the run when the repository is created from Template
+
+    with:
+      GITHUB_ENVIRONMENT: "DEV"
+    secrets:
+      EX_CONNECTED_APP_ID: "${{ secrets.EX_CONNECTED_APP_ID }}"
+      EX_CONNECTED_APP_SECRET: "${{ secrets.EX_CONNECTED_APP_SECRET }}"
+      CH_CONNECTED_APP_ID: "${{ secrets.CH_CONNECTED_APP_ID }}"
+      CH_CONNECTED_APP_SECRET: "${{ secrets.CH_CONNECTED_APP_SECRET }}"
+
+
+  #This job deploys the application to DEV environment with provided configuration details
+  deploy-dev-01:
+    uses: titandigitalecom/ms-devops-workflow/.github/workflows/deploy_workflow.yml@main
+    needs: [build-dev-01]
+    with:
+      CLOUDHUB_ENVIRONMENT: "DEV"
+      GITHUB_ENVIRONMENT: "DEV"
+      CLOUDHUB_REPLICAS: "${{ vars.MULE_CLOUDHUB_REPLICAS_1 }}"
+      CLOUDHUB_REPLICA_SIZE: "${{ vars.MULE_CLOUDHUB_REPLICA_SIZE_0_1 }}"
+      CLOUDHUB_PRIVATE_SPACE: "rezorpay$"
+      CLOUDHUB_PUBLIC_URL: "" #Provide the Endpoint URL if custom public endpoint is needed
+      GENERATE_PUBLIC_URL_FLAG: "false" #Set to true only if the app has public Endpoint URL; in all other cases this should be false
+      APP_LAYER: "System"
+  
+    secrets:
+      EX_CONNECTED_APP_ID: "${{ secrets.EX_CONNECTED_APP_ID }}"
+      EX_CONNECTED_APP_SECRET: "${{ secrets.EX_CONNECTED_APP_SECRET }}"
+      CH_CONNECTED_APP_ID: "${{ secrets.CH_CONNECTED_APP_ID }}"
+      CH_CONNECTED_APP_SECRET: "${{ secrets.CH_CONNECTED_APP_SECRET }}"
+      
+      MULE_AP_CLIENT_ID: "${{ secrets.CH_CONNECTED_APP_ID }}"
+      MULE_AP_CLIENT_SECRET: "${{ secrets.CH_CONNECTED_APP_SECRET }}"
+      TITAN_BIZ_GROUP: "${{ secrets.BUS_GROUP_ID }}"
